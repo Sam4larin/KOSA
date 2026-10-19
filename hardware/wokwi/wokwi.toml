@@ -1,0 +1,5 @@
+[wokwi]
+version = 1
+firmware = "build/KoSa_device.ino.hex"
+elf = "build/KoSa_device.ino.elf"
+rfc2217ServerPort = 4000

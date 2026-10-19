@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "author": "KoSa",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "wokwi-arduino-uno",
+      "id": "uno",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    }
+  ],
+  "connections": [
+    ["uno:TX", "$serialMonitor:RX", "", []],
+    ["uno:RX", "$serialMonitor:TX", "", []]
+  ],
+  "dependencies": {}
+}

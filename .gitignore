@@ -1,0 +1,10 @@
+__pycache__/
+*.db
+.env
+.venv/
+venv/
+models/*.onnx
+*.ppn
+hardware/wokwi/build/
+.pytest_cache/
+.ruff_cache/

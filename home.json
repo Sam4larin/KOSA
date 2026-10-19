@@ -1,0 +1,60 @@
+{
+  "name": "Demo House",
+  "rooms": [
+    {
+      "id": "living_room",
+      "name": "Living Room",
+      "x": 0,
+      "y": 0,
+      "w": 5,
+      "h": 3,
+      "devices": [
+        { "id": "main_light", "type": "light", "name": "Main Light" },
+        { "id": "front_door", "type": "lock", "name": "Front Door" },
+        { "id": "fan", "type": "fan", "name": "Ceiling Fan" }
+      ]
+    },
+    {
+      "id": "kitchen",
+      "name": "Kitchen",
+      "x": 5,
+      "y": 0,
+      "w": 3,
+      "h": 3,
+      "devices": [{ "id": "light", "type": "light", "name": "Kitchen Light" }]
+    },
+    {
+      "id": "bedroom",
+      "name": "Bedroom",
+      "x": 0,
+      "y": 3,
+      "w": 4,
+      "h": 3,
+      "devices": [
+        { "id": "bedside", "type": "light", "name": "Bedside Light" },
+        { "id": "fan", "type": "fan", "name": "Bedroom Fan" }
+      ]
+    },
+    {
+      "id": "bathroom",
+      "name": "Bathroom",
+      "x": 4,
+      "y": 3,
+      "w": 2,
+      "h": 3,
+      "devices": [{ "id": "light", "type": "light", "name": "Bath Light" }]
+    },
+    {
+      "id": "study",
+      "name": "Study",
+      "x": 6,
+      "y": 3,
+      "w": 2,
+      "h": 3,
+      "devices": [
+        { "id": "lamp", "type": "light", "name": "Desk Lamp" },
+        { "id": "back_door", "type": "lock", "name": "Back Door" }
+      ]
+    }
+  ]
+}

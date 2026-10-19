@@ -1,0 +1,56 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KoSa</title>
+<style>
+:root{--paper:#f3f5f2;--ink:#17302e;--wall:#1f4d49;--lit:#f6c453;--dim:#dfe6e2;--muted:#5d716e;--panel:#fff}
+@media(prefers-color-scheme:dark){:root{--paper:#0f1a19;--ink:#e3ece9;--wall:#6fb5ad;--lit:#d9a62e;--dim:#1b2b29;--muted:#8fa6a2;--panel:#152422}}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.5 Georgia,serif;display:grid;grid-template-columns:1fr 360px;height:100vh}
+main{padding:20px;overflow:auto}h1{margin:0 0 4px;font-size:1.6rem}p.sub{margin:0 0 16px;color:var(--muted)}
+svg{width:100%;max-width:760px;height:auto}.dev{cursor:pointer}.dev:focus{outline:2px solid var(--ink)}
+aside{background:var(--panel);border-left:1px solid var(--dim);display:flex;flex-direction:column;min-height:0}
+#msgs{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:8px}
+.m{padding:8px 12px;border-radius:12px;max-width:90%}.u{align-self:flex-end;background:var(--wall);color:var(--paper)}.k{background:var(--dim)}
+form{display:flex;gap:8px;padding:12px;border-top:1px solid var(--dim)}input,select,button{font:inherit;padding:8px;border:1px solid var(--wall);border-radius:8px;background:var(--paper);color:var(--ink)}
+input{flex:1}button{background:var(--wall);color:var(--paper);cursor:pointer}.bar{display:flex;gap:12px;align-items:center;padding:0 16px 8px}
+#log{color:var(--muted);font-size:.85rem;margin-top:12px}
+@media(max-width:800px){body{grid-template-columns:1fr;grid-template-rows:auto 50vh;height:auto}}
+section{margin-top:20px;max-width:760px}h2{font-size:1.1rem;margin:0 0 8px}.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}#libq{width:100%;margin-bottom:8px}ul{padding-left:18px;margin:0}.bar{flex-wrap:wrap}
+</style></head><body>
+<main><h1 id="name">KoSa</h1><p class="sub">Click a light, fan or door, or talk to KoSa in the chat.</p>
+<svg id="plan" viewBox="0 0 740 560" role="img" aria-label="Floor plan"></svg><div id="log"></div>
+<section id="cam"></section>
+<section><h2>Library</h2><input id="libq" placeholder="Search your books" aria-label="Search books"><ul id="books"></ul></section></main>
+<aside><div class="bar"><label for="role">Role</label><select id="role"><option>owner</option><option>guest</option></select><button id="mic" type="button">🎤 Voice</button><label><input type="checkbox" id="spk"> Speak</label></div>
+<div id="msgs" aria-live="polite"></div>
+<form id="f"><input id="t" placeholder="Try: turn on the kitchen light" autocomplete="off"><button>Send</button></form></aside>
+<script>
+const U=90,P=10,ICON={light:'💡',fan:'🌀'};let S,talking=false;
+const api=(p,b)=>fetch('/api/'+p,b?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}:{}).then(r=>r.json());
+function say(t,c){if(!t)return;const d=document.createElement('div');d.className='m '+c;d.textContent=t;msgs.append(d);msgs.scrollTop=1e9;if(c=='k'&&spk.checked&&window.speechSynthesis){const u=new SpeechSynthesisUtterance(t);u.onstart=()=>talking=true;u.onend=()=>talking=false;speechSynthesis.speak(u)}}
+function draw(s){S=s;name.textContent=s.name;role.value=s.role;let h='';
+ for(const r of s.rooms){const ds=r.devices.map(d=>s.devices[r.id+'.'+d.id]);const lit=ds.some(d=>d.type=='light'&&d.on);
+  h+=`<rect x="${P+r.x*U}" y="${P+r.y*U}" width="${r.w*U}" height="${r.h*U}" fill="${lit?'var(--lit)':'var(--dim)'}" fill-opacity="${lit?.45:1}" stroke="var(--wall)" stroke-width="4"/>
+  <text x="${P+r.x*U+10}" y="${P+r.y*U+24}" fill="var(--ink)" font-size="15">${r.name}</text>`;
+  ds.forEach((d,i)=>{const x=P+r.x*U+30+i*52,y=P+(r.y+r.h)*U-34,on=d.type=='lock'?!d.locked:d.on;
+   const ic=d.type=='lock'?(d.locked?'🔒':'🔓'):ICON[d.type];
+   h+=`<g class="dev" tabindex="0" role="button" aria-label="${d.name}" data-id="${d.id}" opacity="${on||d.type=='lock'?1:.5}"><circle cx="${x}" cy="${y}" r="20" fill="var(--paper)" stroke="var(--wall)" stroke-width="2"/><text x="${x}" y="${y+7}" text-anchor="middle" font-size="20">${ic}</text><title>${d.name}</title></g>`})}
+ plan.innerHTML=h;log.textContent=s.log.length?'Recent: '+s.log.slice(-4).join(' · '):'';extra(s)}
+plan.onclick=plan.onkeydown=async e=>{if(e.key&&e.key!='Enter')return;const g=e.target.closest('.dev');if(!g)return;const s=await api('toggle',{id:g.dataset.id});say(s.reply,'k');draw(s)};
+async function send(v){say(v,'u');const s=await api('chat',{text:v});say(s.reply,'k');draw(s)}
+f.onsubmit=e=>{e.preventDefault();const v=t.value.trim();if(v){t.value='';send(v)}};
+role.onchange=async()=>{const s=await api('role',{role:role.value});say(s.reply,'k');draw(s)};
+let seen=null;
+function extra(s){const e=s.events[s.events.length-1];
+ cam.innerHTML=`<h2>Door camera</h2><svg viewBox="0 0 160 110" width="200" role="img" aria-label="Door camera feed"><rect width="160" height="110" fill="var(--dim)" stroke="var(--wall)"/>${e?`<circle cx="80" cy="45" r="18" fill="var(--wall)"/><path d="M45 105a35 30 0 0170 0z" fill="var(--wall)"/><rect x="56" y="22" width="48" height="46" fill="none" stroke="${e.known?'#2a9d5c':'#d64545'}" stroke-width="3"/><text x="56" y="16" font-size="11" fill="var(--ink)">${e.who}</text>`:'<text x="80" y="58" text-anchor="middle" font-size="11" fill="var(--muted)">No one at the door</text>'}</svg><div class="row">${s.people.concat(['Stranger']).map(p=>`<button data-v="${p}">${p} arrives</button>`).join('')}</div>`;
+ if(seen!==null&&s.events.length>seen)say(e.msg,'k');seen=s.events.length;loadBooks()}
+cam.onclick=async e=>{const v=e.target.dataset.v;if(v)draw(await api('camera/visit',{who:v}))};
+async function loadBooks(){const b=await api('books?q='+encodeURIComponent(libq.value));books.innerHTML=b.length?b.map(x=>`<li><b>${x.title}</b>${x.author?' by '+x.author:''} · ${x.room?x.room+(x.shelf?', shelf '+x.shelf:''):'not placed'}</li>`).join(''):'<li>No books yet. Tell KoSa: add book Dune by Frank Herbert in the Study</li>'}
+libq.oninput=loadBooks;
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;let rec,on=false,awake=false;
+if(!SR){mic.disabled=true;mic.title='Voice needs Chrome or Edge'}
+mic.onclick=()=>{if(on){on=false;rec.stop();mic.textContent='🎤 Voice';return}
+ rec=new SR();rec.continuous=true;rec.lang='en-US';spk.checked=true;
+ rec.onresult=e=>{if(talking)return;const x=e.results[e.results.length-1][0].transcript.trim();const m=x.match(/^hey,? (?:KoSa|cosa|casa|kossa)[,.! ]*(.*)$/i);
+  if(m){if(m[1])send(m[1]);else{awake=true;say('Yes?','k')}}else if(awake){awake=false;send(x)}};
+ rec.onend=()=>{if(on)rec.start()};rec.start();on=true;mic.textContent='🎤 Say "Hey KoSa"'};
+api('state').then(s=>{draw(s);say('Hi, I\'m KoSa. Ask me to control the house.','k')});
+</script></body></html>
