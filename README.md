@@ -11,7 +11,7 @@ Early prototype (v0.1).
 
 KoSa controls a simulated house, talks back in plain sentences, keeps a catalogue of your books, recognises visitors at the door, and can drive real devices through a USB board when you have one.
 
-![KoSa Screenshot](kosa_screenshot.png)
+![KoSa Screenshot](images/kosa_screenshot.png)
 
 ## What is real and what is simulated
 
